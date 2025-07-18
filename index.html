@@ -1,114 +1,612 @@
-<!DOCTYPE html><html lang="es">
+<!DOCTYPE html>
+<html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Malla Curricular Psicopedagogía</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f3f6f9;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-    }
-    .grid {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .year {
-      background-color: #ffffff;
-      padding: 10px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      min-width: 200px;
-    }
-    .year h2 {
-      text-align: center;
-      color: #2980b9;
-    }
-    .subject {
-      background-color: #e8f0fe;
-      border: 1px solid #b0c4de;
-      border-radius: 5px;
-      padding: 10px;
-      margin: 5px 0;
-      cursor: pointer;
-      position: relative;
-    }
-    .subject.locked {
-      background-color: #f9f9f9;
-      color: #aaa;
-      cursor: not-allowed;
-    }
-    .subject.approved {
-      background-color: #d4edda;
-      border-color: #c3e6cb;
-      text-decoration: line-through;
-    }
-    .tooltip {
-      visibility: hidden;
-      background-color: #444;
-      color: #fff;
-      text-align: center;
-      border-radius: 5px;
-      padding: 5px;
-      position: absolute;
-      z-index: 1;
-      bottom: 125%;
-      left: 50%;
-      transform: translateX(-50%);
-      opacity: 0;
-      transition: opacity 0.3s;
-      font-size: 12px;
-      width: 150px;
-    }
-    .subject.locked:hover .tooltip {
-      visibility: visible;
-      opacity: 1;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Malla Curricular Interactiva · Lic. en Psicopedagogía · UNLZ</title>
+<!-- Fuente Google (solo link externo; si falla, fallback a fuentes del sistema) -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink-light: #ffd7ef; /* rosa muy claro */
+  --pink-light-2: #ffe3f4;
+  --pink-mid: #ff8ccf;  /* rosa medio */
+  --pink-mid-hover: #ff6fc3;
+  --pink-dark: #d81b60; /* rosa oscuro */
+  --pink-dark-2: #ad144a;
+  --gray-locked: #c7c7c7;
+  --gray-text: #555;
+  --bg: #fffefe;
+  --bg-alt: #fff5fb;
+  --radius: 10px;
+  --trans-fast: 0.12s;
+  --trans-med: 0.25s;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.12);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.12);
+  --font-head: "Poppins", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+}
+
+html, body {
+  margin: 0; padding: 0; height: 100%; width: 100%;
+  background: var(--bg);
+  color: #1d1d1f;
+  font-family: var(--font-body);
+  line-height: 1.4;
+}
+
+h1,h2,h3 {
+  font-family: var(--font-head);
+  margin: 0 0 .5em 0;
+  font-weight: 600;
+  color: var(--pink-dark);
+}
+
+header {
+  padding: 1.25rem 1rem 0 1rem;
+  text-align: center;
+}
+
+header p {
+  max-width: 700px;
+  margin: 0 auto;
+  color: var(--gray-text);
+  font-size: .95rem;
+}
+
+.controls {
+  margin-top: 1rem;
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.controls button {
+  cursor: pointer;
+  border: none;
+  padding: .5rem 1rem;
+  font-size: .9rem;
+  border-radius: var(--radius);
+  background: var(--pink-mid);
+  color: #fff;
+  transition: background var(--trans-fast) ease, transform var(--trans-fast) ease;
+}
+.controls button:hover {
+  background: var(--pink-mid-hover);
+  transform: translateY(-1px);
+}
+.controls button:active {
+  transform: translateY(0) scale(.98);
+}
+
+#grid {
+  margin: 2rem auto;
+  padding: 0 1rem 4rem 1rem;
+  width: min(1500px, 100%);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px,100%), 1fr));
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.column {
+  background: var(--bg-alt);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  min-height: 100px;
+}
+
+.column h2 {
+  font-size: 1.15rem;
+  text-align: center;
+  margin-bottom: .75rem;
+}
+
+.course {
+  position: relative;
+  margin-bottom: .5rem;
+  padding: .75rem .75rem .75rem 2rem;
+  background: var(--pink-light);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: background var(--trans-med) ease, opacity var(--trans-fast) ease, transform var(--trans-fast) ease;
+  user-select: none;
+  font-size: .95rem;
+}
+.course:last-child{margin-bottom:0;}
+
+.course.available:hover {
+  background: var(--pink-mid);
+  color: #fff;
+}
+.course.available:hover .course-check{
+  border-color: #fff;
+}
+
+.course.completed {
+  background: var(--pink-dark);
+  color: #fff;
+}
+
+.course.completed .course-check {
+  background: #fff;
+  border-color: #fff;
+}
+.course.completed .course-check::after {
+  opacity: 1;
+}
+
+.course.locked {
+  background: var(--gray-locked);
+  color: #fff;
+  cursor: not-allowed;
+  opacity: .75;
+}
+
+.course.locked .course-check {
+  border-color: #fff;
+}
+
+.course-check {
+  position: absolute;
+  left: .75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.05rem;
+  height: 1.05rem;
+  border: 2px solid var(--pink-dark);
+  background: transparent;
+  border-radius: 4px;
+  pointer-events: none;
+  transition: all var(--trans-fast) ease;
+}
+.course-check::after {
+  content: "✓";
+  position: absolute;
+  inset: 0;
+  font-size: .9rem;
+  line-height: 1rem;
+  text-align: center;
+  color: var(--pink-dark);
+  opacity: 0;
+  transition: opacity var(--trans-fast) ease;
+}
+
+.course.completed .course-check::after {
+  color: var(--pink-dark);
+}
+
+/* Tooltip */
+.tooltip {
+  position: absolute;
+  z-index: 5;
+  bottom: calc(100% + 4px);
+  left: 0;
+  transform: translateY(4px);
+  background: #fff;
+  color: #000;
+  padding: .5rem .75rem;
+  font-size: .8rem;
+  max-width: 220px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--trans-fast) ease, transform var(--trans-fast) ease;
+}
+.course.locked:hover .tooltip,
+.course.locked:focus-visible .tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tooltip strong{color:var(--pink-dark);font-weight:600;}
+.tooltip ul{margin:.25rem 0 0 1.1em;padding:0;}
+.tooltip li{margin:0;padding:0;list-style:disc;font-size:.8rem;}
+
+/* Legend */
+#legend {
+  max-width: 700px;
+  margin: 0 auto 2rem auto;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  font-size: .9rem;
+  color: var(--gray-text);
+}
+#legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+#legend .swatch {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 3px;
+  box-shadow: var(--shadow-sm);
+}
+#legend .swatch.available{background:var(--pink-light);}
+#legend .swatch.completed{background:var(--pink-dark);} 
+#legend .swatch.locked{background:var(--gray-locked);} 
+
+footer {
+  margin-top: 4rem;
+  text-align: center;
+  padding-bottom: 4rem;
+  font-size: .8rem;
+  color: var(--gray-text);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1f1a1f;
+    --bg-alt: #2a202b;
+    --gray-text: #ddd;
+    --gray-locked: #666;
+  }
+  body{color:#fff;}
+  header p{color:var(--gray-text);} 
+  footer{color:var(--gray-text);} 
+  .tooltip{background:#2a202b;color:#fff;}
+  .course-check{border-color:#fff;}
+  .course.completed .course-check::after{color:var(--pink-dark);} 
+}
+</style>
 </head>
 <body>
-  <h1>Malla Curricular - Psicopedagogía UNLZ</h1>
-  <div class="grid" id="malla"></div>  <script>
-    const materias = {
-      "1er Año": [
-        { id: "psico1", nombre: "Psicología I" },
-        { id: "pedago1", nombre: "Pedagogía I" },
-        { id: "sociedad", nombre: "Sociedad y Educación" },
-      ],
-      "2do Año": [
-        { id: "psico2", nombre: "Psicología II", requisitos: ["psico1"] },
-        { id: "pedago2", nombre: "Pedagogía II", requisitos: ["pedago1"] },
-        { id: "neuro1", nombre: "Neuropsicología I", requisitos: ["psico1"] },
-      ],
-      "3er Año": [
-        { id: "psicoevolutiva", nombre: "Psicología Evolutiva", requisitos: ["psico2"] },
-        { id: "diagnostico", nombre: "Diagnóstico Psicopedagógico", requisitos: ["pedago2", "neuro1"] },
-      ]
-    };
+<header>
+  <h1>Malla Curricular Interactiva · Licenciatura en Psicopedagogía · UNLZ</h1>
+  <p>Haz clic en cada materia para marcarla como <strong>aprobada</strong>. Las materias con requisitos previos aparecerán <strong>bloqueadas</strong> hasta que completes todas las correlativas. Tu avance se guarda automáticamente en tu navegador (localStorage).</p>
+  <div class="controls">
+    <button id="btn-export" type="button">Exportar progreso (JSON)</button>
+    <button id="btn-import" type="button">Importar progreso</button>
+    <button id="btn-reset" type="button">Reiniciar todo</button>
+  </div>
+</header>
 
-    const aprobadas = JSON.parse(localStorage.getItem("materiasAprobadas")) || [];
+<div id="legend">
+  <div class="legend-item"><span class="swatch available"></span> Disponible</div>
+  <div class="legend-item"><span class="swatch locked"></span> Bloqueada (faltan requisitos)</div>
+  <div class="legend-item"><span class="swatch completed"></span> Aprobada</div>
+</div>
 
-    function guardarProgreso() {
-      localStorage.setItem("materiasAprobadas", JSON.stringify(aprobadas));
+<main id="grid" aria-live="polite"></main>
+
+<footer>
+  <p>Esta herramienta es orientativa y fue construida a partir de la información provista por el/la estudiante. No reemplaza la normativa oficial de la Universidad Nacional de Lomas de Zamora.</p>
+</footer>
+
+<script>
+/* =============================================================
+ *  Malla Curricular Interactiva · Lic. Psicopedagogía (UNLZ)
+ *  Autor: ChatGPT (con especificaciones del/la estudiante)
+ *  Archivo único HTML con CSS & JS incrustados.
+ *  Persistencia localStorage.
+ *  Estado: v1.0 (2025-07-18)
+ * ============================================================= */
+
+/***************************************************************
+ * UTILIDADES
+ ***************************************************************/
+const slugify = (str) => {
+  return str
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+};
+
+/* Nombre de la clave en localStorage */
+const STORAGE_KEY = 'mallaPsicopedagogiaUNLZ_v1';
+
+/***************************************************************
+ * DATOS DE LA MALLA
+ * Cada objeto: {id, nombre, ciclo, prereqs:[ids]}
+ ***************************************************************/
+const COURSES = [
+  /* ------------- PRIMER AÑO ------------- */
+  {id: 'filosofia', nombre: 'Filosofía', ciclo: 'Primer Año', prereqs: []},
+  {id: 'historia-social-general', nombre: 'Historia Social General', ciclo: 'Primer Año', prereqs: []},
+  {id: 'introduccion-a-la-sociologia', nombre: 'Introducción a la Sociología', ciclo: 'Primer Año', prereqs: []},
+  {id: 'psicologia-general', nombre: 'Psicología General', ciclo: 'Primer Año', prereqs: []},
+  {id: 'introduccion-a-la-practica-psicopedagogica', nombre: 'Introducción a la Práctica Psicopedagógica', ciclo: 'Primer Año', prereqs: []},
+  {id: 'introduccion-a-la-educacion', nombre: 'Introducción a la Educación', ciclo: 'Primer Año', prereqs: []},
+  {id: 'taller-de-lectura-y-escritura', nombre: 'Taller de Lectura y Escritura', ciclo: 'Primer Año', prereqs: []},
+
+  /* ------------- SEGUNDO AÑO ------------- */
+  {id: 'pedagogia', nombre: 'Pedagogía', ciclo: 'Segundo Año', prereqs: ['introduccion-a-la-educacion','introduccion-a-la-sociologia']},
+  {id: 'fundamentos-biologicos-para-la-educacion', nombre: 'Fundamentos Biológicos para la Educación', ciclo: 'Segundo Año', prereqs: ['psicologia-general','introduccion-a-la-practica-psicopedagogica']},
+  {id: 'psicologia-del-desarrollo-i', nombre: 'Psicología del Desarrollo I', ciclo: 'Segundo Año', prereqs: ['filosofia','psicologia-general']},
+  {id: 'psicologia-social', nombre: 'Psicología Social', ciclo: 'Segundo Año', prereqs: ['introduccion-a-la-sociologia','psicologia-general']},
+  {id: 'antropologia-cultural', nombre: 'Antropología Cultural', ciclo: 'Segundo Año', prereqs: ['filosofia','historia-social-general','taller-de-lectura-y-escritura']},
+  {id: 'psicologia-del-desarrollo-ii', nombre: 'Psicología del Desarrollo II', ciclo: 'Segundo Año', prereqs: ['filosofia','psicologia-general','psicologia-del-desarrollo-i']},
+  {id: 'teorias-del-aprendizaje', nombre: 'Teorías del Aprendizaje', ciclo: 'Segundo Año', prereqs: ['introduccion-a-la-sociologia','psicologia-del-desarrollo-i']},
+  {id: 'historia-de-la-educacion', nombre: 'Historia de la Educación', ciclo: 'Segundo Año', prereqs: ['historia-social-general','pedagogia']},
+
+  /* ------------- TERCER AÑO ------------- */
+  {id: 'metodologia-de-la-investigacion-social', nombre: 'Metodología de la Investigación Social', ciclo: 'Tercer Año', prereqs: ['filosofia','introduccion-a-la-sociologia','taller-de-lectura-y-escritura']},
+  {id: 'teorias-psicoanaliticas-contemporaneas', nombre: 'Teorías Psicoanalíticas Contemporáneas', ciclo: 'Tercer Año', prereqs: ['psicologia-general','introduccion-a-la-practica-psicopedagogica','psicologia-del-desarrollo-i']},
+  {id: 'didactica-i', nombre: 'Didáctica I', ciclo: 'Tercer Año', prereqs: ['pedagogia','teorias-del-aprendizaje']},
+  {id: 'pedagogia-especial', nombre: 'Pedagogía Especial', ciclo: 'Tercer Año', prereqs: ['pedagogia','fundamentos-biologicos-para-la-educacion','psicologia-del-desarrollo-i']},
+  {id: 'elementos-de-neuropsicologia-infantil', nombre: 'Elementos de Neuropsicología Infantil', ciclo: 'Tercer Año', prereqs: ['fundamentos-biologicos-para-la-educacion','psicologia-del-desarrollo-i']},
+  {id: 'psicopatologia-del-desarrollo-i', nombre: 'Psicopatología del Desarrollo I', ciclo: 'Tercer Año', prereqs: ['psicologia-del-desarrollo-ii']},
+  {id: 'linguistica-y-semiotica', nombre: 'Lingüística y Semiótica', ciclo: 'Tercer Año', prereqs: ['antropologia-cultural','taller-de-lectura-y-escritura']},
+  {id: 'epistemologia-y-psicologia-genetica', nombre: 'Epistemología y Psicología Genética', ciclo: 'Tercer Año', prereqs: ['psicologia-del-desarrollo-i','psicologia-del-desarrollo-ii']},
+
+  /* ------------- CUARTO AÑO ------------- */
+  {id: 'tecnicas-de-exploracion-psicopedagogicas', nombre: 'Técnicas de Exploración Psicopedagógicas', ciclo: 'Cuarto Año', prereqs: []},
+  {id: 'didactica-ii', nombre: 'Didáctica II', ciclo: 'Cuarto Año', prereqs: []},
+  {id: 'estudio-del-lenguaje-y-sus-trastornos', nombre: 'Estudio del Lenguaje y sus Trastornos', ciclo: 'Cuarto Año', prereqs: []},
+  {id: 'diagnostico-psicopedagogico', nombre: 'Diagnóstico Psicopedagógico', ciclo: 'Cuarto Año', prereqs: []},
+  {id: 'estrategias-para-el-abordaje-de-las-dificultades-del-aprendizaje', nombre: 'Estrategias para el Abordaje de las Dificultades del Aprendizaje', ciclo: 'Cuarto Año', prereqs: []},
+  {id: 'pedagogia-institucional', nombre: 'Pedagogía Institucional', ciclo: 'Cuarto Año', prereqs: ['psicologia-social']},
+  {id: 'clinica-psicopedagogica', nombre: 'Clínica Psicopedagógica', ciclo: 'Cuarto Año', prereqs: []},
+
+  /* ------------- LICENCIATURA ------------- */
+  {id: 'abordaje-psicoanalitico-ninos-adolescentes', nombre: 'Abordaje Psicoanalítico en Niños y Adolescentes', ciclo: 'Licenciatura', prereqs: []},
+  {id: 'psicopatologia-del-desarrollo-ii', nombre: 'Psicopatología del Desarrollo II', ciclo: 'Licenciatura', prereqs: []},
+  {id: 'materia-optativa-1', nombre: 'Materia Optativa (1)', ciclo: 'Licenciatura', prereqs: []},
+  {id: 'idioma-extranjero-i', nombre: 'Idioma Extranjero I (Inglés o Portugués)', ciclo: 'Licenciatura', prereqs: []},
+  {id: 'idioma-extranjero-ii', nombre: 'Idioma Extranjero II (Inglés o Portugués)', ciclo: 'Licenciatura', prereqs: ['idioma-extranjero-i']},
+
+  /* ------------- OPTATIVAS ------------- */
+  {id: 'orientacion-educacional-y-laboral', nombre: 'Orientación Educacional y Laboral', ciclo: 'Optativas', prereqs: ['psicologia-del-desarrollo-i']},
+  {id: 'el-deseo-y-su-articulacion-con-el-aprendizaje', nombre: 'El Deseo y su Articulación con el Aprendizaje', ciclo: 'Optativas', prereqs: []},
+  {id: 'estimulacion-temprana', nombre: 'Estimulación Temprana', ciclo: 'Optativas', prereqs: []},
+  {id: 'psicomotricidad', nombre: 'Psicomotricidad', ciclo: 'Optativas', prereqs: ['psicologia-del-desarrollo-ii']},
+];
+
+/* Orden de las columnas */
+const COLUMN_ORDER = ['Primer Año','Segundo Año','Tercer Año','Cuarto Año','Licenciatura','Optativas'];
+
+/***************************************************************
+ * ESTADO & PERSISTENCIA
+ ***************************************************************/
+let completadas = loadState();
+
+function loadState(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return {};
+    const obj = JSON.parse(raw);
+    return (obj && typeof obj === 'object') ? obj : {};
+  } catch(err){
+    console.warn('Error leyendo localStorage', err);
+    return {};
+  }
+}
+function saveState(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(completadas));
+  } catch(err){
+    console.warn('Error guardando localStorage', err);
+  }
+}
+
+/***************************************************************
+ * RENDERIZADO DEL GRID
+ ***************************************************************/
+function buildGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  // crear columnas
+  const cols = {};
+  COLUMN_ORDER.forEach(colName => {
+    const col = document.createElement('section');
+    col.className = 'column';
+    col.dataset.ciclo = colName;
+    const h = document.createElement('h2'); h.textContent = colName; col.appendChild(h);
+    cols[colName] = col;
+    grid.appendChild(col);
+  });
+
+  // agrupar cursos por ciclo
+  COURSES.forEach(c => {
+    const el = createCourseElement(c);
+    cols[c.ciclo].appendChild(el);
+  });
+
+  updateAllLockStates();
+}
+
+function createCourseElement(course){
+  const {id, nombre, prereqs} = course;
+  const div = document.createElement('div');
+  div.className = 'course';
+  div.id = id;
+  div.setAttribute('role','checkbox');
+  div.setAttribute('aria-checked','false');
+  div.tabIndex = 0; // focusable
+  div.dataset.prereqs = JSON.stringify(prereqs);
+  div.dataset.name = nombre;
+
+  const box = document.createElement('span');
+  box.className = 'course-check';
+  div.appendChild(box);
+
+  const label = document.createElement('span');
+  label.className = 'course-label';
+  label.textContent = nombre;
+  div.appendChild(label);
+
+  const tooltip = document.createElement('div');
+  tooltip.className = 'tooltip';
+  tooltip.innerHTML = '';
+  div.appendChild(tooltip);
+
+  // click / teclado
+  div.addEventListener('click', () => toggleCourse(id));
+  div.addEventListener('keydown', e => {
+    if(e.key === ' ' || e.key === 'Enter'){
+      e.preventDefault(); toggleCourse(id);
     }
+  });
+  return div;
+}
 
-    function crearMalla() {
-      const contenedor = document.getElementById("malla");
-      contenedor.innerHTML = "";
-      for (const [anio, listaMaterias] of Object.entries(materias)) {
-        const col = document.createElement("div");
-        col.className = "year";
-        const titulo = document.createElement("h2");
-        titulo.textContent = anio;
-        col.appendChild(titulo);
+/***************************************************************
+ * ESTADOS DE BLOQUEO
+ ***************************************************************/
+function courseIsCompleted(id){
+  return !!completadas[id];
+}
+function coursePrereqsMet(id){
+  const course = COURSES.find(c=>c.id===id);
+  if(!course) return true; // por seguridad
+  return course.prereqs.every(pr => courseIsCompleted(pr));
+}
 
-        listaMaterias.forEach(m => {
-          const div = document.createElement("
+function updateCourseLockState(id){
+  const course = COURSES.find(c=>c.id===id);
+  if(!course) return;
+  const el = document.getElementById(id);
+  if(!el) return;
+  const tooltip = el.querySelector('.tooltip');
+  const done = courseIsCompleted(id);
+  const met = coursePrereqsMet(id);
+
+  el.classList.remove('locked','available','completed');
+
+  if(done){
+    el.classList.add('completed');
+    el.setAttribute('aria-checked','true');
+    tooltip.innerHTML = '<strong>Completada</strong>';
+  } else if(!met){
+    el.classList.add('locked');
+    el.setAttribute('aria-checked','false');
+    // construir tooltip faltantes
+    const faltan = course.prereqs.filter(pr => !courseIsCompleted(pr));
+    tooltip.innerHTML = buildTooltipHTML(faltan);
+  } else {
+    el.classList.add('available');
+    el.setAttribute('aria-checked','false');
+    tooltip.innerHTML = '<strong>Disponible:</strong> haz clic para marcar como aprobada.';
+  }
+}
+
+function buildTooltipHTML(faltanIds){
+  if(!faltanIds.length) return '<strong>Disponible:</strong> haz clic para marcar como aprobada.';
+  const nombres = faltanIds.map(id => getCourseName(id));
+  const lis = nombres.map(n => `<li>${n}</li>`).join('');
+  return `<strong>Faltan aprobar:</strong><ul>${lis}</ul>`;
+}
+
+function getCourseName(id){
+  const c = COURSES.find(c=>c.id===id); return c?c.nombre:id;
+}
+
+function updateAllLockStates(){
+  COURSES.forEach(c => updateCourseLockState(c.id));
+}
+
+/***************************************************************
+ * TOGGLE DE CURSO
+ ***************************************************************/
+function toggleCourse(id){
+  const course = COURSES.find(c=>c.id===id);
+  if(!course) return;
+  if(!coursePrereqsMet(id) && !courseIsCompleted(id)){
+    // Si está bloqueada y aún no completada, no permitir marcar.
+    flashLocked(id);
+    return;
+  }
+  // alternar estado
+  if(courseIsCompleted(id)){
+    delete completadas[id];
+  } else {
+    completadas[id] = true;
+  }
+  saveState();
+  updateAllLockStates();
+}
+
+function flashLocked(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.animate([
+    {transform:'translateX(0)'},
+    {transform:'translateX(-4px)'},
+    {transform:'translateX(4px)'},
+    {transform:'translateX(0)'}
+  ],{duration:150,easing:'ease-in-out'});
+}
+
+/***************************************************************
+ * EXPORTAR / IMPORTAR / RESET
+ ***************************************************************/
+function exportProgress(){
+  const data = {
+    version: '1.0',
+    timestamp: new Date().toISOString(),
+    completadas: completadas
+  };
+  const json = JSON.stringify(data, null, 2);
+  // descarga
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'malla-psicopedagogia-unlz-progreso.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importProgressFromFile(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const obj = JSON.parse(e.target.result);
+      if(obj && obj.completadas && typeof obj.completadas === 'object'){
+        completadas = obj.completadas;
+        saveState();
+        updateAllLockStates();
+        alert('Progreso importado correctamente.');
+      } else {
+        alert('Archivo inválido.');
+      }
+    } catch(err){
+      alert('No se pudo leer el archivo (JSON inválido).');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetProgress(){
+  if(!confirm('¿Seguro que quieres reiniciar todo el progreso? Esta acción no se puede deshacer.')) return;
+  completadas = {};
+  saveState();
+  updateAllLockStates();
+}
+
+/***************************************************************
+ * EVENTOS DE CONTROLES
+ ***************************************************************/
+window.addEventListener('DOMContentLoaded', () => {
+  buildGrid();
+  // botones
+  document.getElementById('btn-export').addEventListener('click', exportProgress);
+  document.getElementById('btn-import').addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.addEventListener('change', () => {
+      if(input.files && input.files[0]){
+        importProgressFromFile(input.files[0]);
+      }
+    });
+    input.click();
+  });
+  document.getElementById('btn-reset').addEventListener('click', resetProgress);
+});
+
+</script>
+</body>
+</html>
