@@ -1,0 +1,114 @@
+<!DOCTYPE html><html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malla Curricular Psicopedagogía</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f3f6f9;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .grid {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .year {
+      background-color: #ffffff;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      min-width: 200px;
+    }
+    .year h2 {
+      text-align: center;
+      color: #2980b9;
+    }
+    .subject {
+      background-color: #e8f0fe;
+      border: 1px solid #b0c4de;
+      border-radius: 5px;
+      padding: 10px;
+      margin: 5px 0;
+      cursor: pointer;
+      position: relative;
+    }
+    .subject.locked {
+      background-color: #f9f9f9;
+      color: #aaa;
+      cursor: not-allowed;
+    }
+    .subject.approved {
+      background-color: #d4edda;
+      border-color: #c3e6cb;
+      text-decoration: line-through;
+    }
+    .tooltip {
+      visibility: hidden;
+      background-color: #444;
+      color: #fff;
+      text-align: center;
+      border-radius: 5px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 12px;
+      width: 150px;
+    }
+    .subject.locked:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Malla Curricular - Psicopedagogía UNLZ</h1>
+  <div class="grid" id="malla"></div>  <script>
+    const materias = {
+      "1er Año": [
+        { id: "psico1", nombre: "Psicología I" },
+        { id: "pedago1", nombre: "Pedagogía I" },
+        { id: "sociedad", nombre: "Sociedad y Educación" },
+      ],
+      "2do Año": [
+        { id: "psico2", nombre: "Psicología II", requisitos: ["psico1"] },
+        { id: "pedago2", nombre: "Pedagogía II", requisitos: ["pedago1"] },
+        { id: "neuro1", nombre: "Neuropsicología I", requisitos: ["psico1"] },
+      ],
+      "3er Año": [
+        { id: "psicoevolutiva", nombre: "Psicología Evolutiva", requisitos: ["psico2"] },
+        { id: "diagnostico", nombre: "Diagnóstico Psicopedagógico", requisitos: ["pedago2", "neuro1"] },
+      ]
+    };
+
+    const aprobadas = JSON.parse(localStorage.getItem("materiasAprobadas")) || [];
+
+    function guardarProgreso() {
+      localStorage.setItem("materiasAprobadas", JSON.stringify(aprobadas));
+    }
+
+    function crearMalla() {
+      const contenedor = document.getElementById("malla");
+      contenedor.innerHTML = "";
+      for (const [anio, listaMaterias] of Object.entries(materias)) {
+        const col = document.createElement("div");
+        col.className = "year";
+        const titulo = document.createElement("h2");
+        titulo.textContent = anio;
+        col.appendChild(titulo);
+
+        listaMaterias.forEach(m => {
+          const div = document.createElement("
